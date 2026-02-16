@@ -3,6 +3,7 @@ import numpy as np
 import torch
 from torch import nn
 from torchvision import datasets, transforms
+import torch.nn.functional as F
 #from gdown import download
 from PIL import Image
 
@@ -74,21 +75,30 @@ showImage(image)
 # %%
 class CNN(nn.Module):
     def __init__(self):
-        super().__init__()
-        self.net = nn.Sequential(
-            nn.Conv2d(1, 32, 3, padding=1), nn.ReLU(),
-            nn.Conv2d(32, 64, 3, padding=1), nn.ReLU(),
-            nn.MaxPool2d(2),  # 14x14
-
-            nn.Conv2d(64, 128, 3, padding=1), nn.ReLU(),
-            nn.MaxPool2d(2),  # 7x7
-        )
-        self.fc = nn.Linear(128*7*7, 10)
+        super(CNN, self).__init__()
+        self.conv1 = nn.Conv2d(1, 10, kernel_size=5)
+        self.conv2 = nn.Conv2d(10, 20, kernel_size=5)
+        self.fc1 = nn.Linear(320, 50)
+        self.fc2 = nn.Linear(50, 10)
+        self.relu = nn.ReLU()
 
     def forward(self, x):
-        x = self.net(x)
-        x = x.view(x.size(0), -1)
-        return self.fc(x)
+        x = self.conv1(x)
+        x = self.relu(x)
+        x = F.max_pool2d(x, 2)
+
+        x = self.conv2(x)
+        x = self.relu(x)
+        x = F.max_pool2d(x, 2)
+
+        x = x.view(-1, 320)
+
+        x = self.fc1(x)
+        x = self.relu(x)
+        x = self.fc2(x)
+
+        return x
+    
 torch.manual_seed(42)
 model = CNN()
 print(model)
@@ -158,7 +168,7 @@ optimizer = torch.optim.Adam(model.parameters(), lr=1e-3)
 train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=64, shuffle=True)
 test_loader  = torch.utils.data.DataLoader(test_dataset,  batch_size=64)
 
-EPOCHS = 5
+EPOCHS = 7
 
 for epoch in range(EPOCHS):
     train_loss, train_acc = train(model, train_loader, optimizer, criterion, device)
