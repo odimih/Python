@@ -1,0 +1,53 @@
+# --- Python ---
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.so
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# Jupyter Notebook checkpoints
+.ipynb_checkpoints/
+
+# PyCharm / VS Code
+.idea/
+.vscode/
+
+# macOS system files
+.DS_Store
+
+# Logs
+*.log
+
+# Build artifacts
+build/
+dist/
+*.egg-info/
+
+# ML / Data science
+# Large datasets (you decide what to keep)
+data/
+datasets/
+*.h5
+*.hdf5
+*.ckpt
+*.pth
+*.pt
+*.joblib
+*.pickle
+*.pkl
+
+# TensorBoard logs
+runs/
+
+# Model outputs
+models/
+outputs/
+
+# Cache directories
+.cache/
+__pycache__/
