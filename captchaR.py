@@ -168,7 +168,7 @@ optimizer = torch.optim.Adam(model.parameters(), lr=1e-3)
 train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=64, shuffle=True)
 test_loader  = torch.utils.data.DataLoader(test_dataset,  batch_size=64)
 
-EPOCHS = 7
+EPOCHS = 5
 
 for epoch in range(EPOCHS):
     train_loss, train_acc = train(model, train_loader, optimizer, criterion, device)

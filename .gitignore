@@ -51,3 +51,4 @@ outputs/
 # Cache directories
 .cache/
 __pycache__/
+answers.json
