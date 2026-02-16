@@ -1,0 +1,32 @@
+name: pdtn
+channels:
+  - conda-forge
+dependencies:
+  - python=3.10
+  - numpy
+  - pandas
+  - matplotlib
+  - scikit-learn
+  - scipy
+  - pillow
+  - requests
+  - tqdm
+  - h5py
+  - jupyter
+  - ipykernel
+  - tensorflow=2.15.*
+  - pip
+  - pip:
+      - beautifulsoup4
+      - filelock
+      - fsspec
+      - gdown
+      - jinja2
+      - markupsafe
+      - mpmath
+      - networkx
+      - soupsieve
+      - sympy
+      # PyTorch (CPU on Windows, MPS on macOS)
+      - torch==2.2.0
+      - torchvision==0.17.0
