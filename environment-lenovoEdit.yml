@@ -1,5 +1,6 @@
 name: ml
 channels:
+  - nvidia
   - conda-forge
 dependencies:
   - python=3.10
@@ -14,6 +15,7 @@ dependencies:
   - pip
   - pip:
       - gdown
+      - xgboost
       # PyTorch (CPU on Windows, MPS on macOS)
       - torch==2.2.0
       - torchvision==0.17.0
