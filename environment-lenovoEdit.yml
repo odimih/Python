@@ -1,0 +1,19 @@
+name: ml
+channels:
+  - conda-forge
+dependencies:
+  - python=3.10
+  - numpy
+  - pandas
+  - matplotlib
+  - scikit-learn
+  - scipy
+  - jupyter
+  - ipykernel
+  - tensorflow=2.15.*
+  - pip
+  - pip:
+      - gdown
+      # PyTorch (CPU on Windows, MPS on macOS)
+      - torch==2.2.0
+      - torchvision==0.17.0
