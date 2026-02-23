@@ -16,7 +16,8 @@ else: device = torch.device("cpu")
 print(f"Using device: {device}")
 
 class ReshapeAndScale255(torch.nn.Module):
-    def __init__(self): super().__init__()
+    def __init__(self): 
+        super().__init__( )   
     def forward(self, x):
         if len(x.shape) == 2: 
             x = x.unsqueeze(0)
@@ -57,8 +58,10 @@ def tensorToImage(tensor):
 
 # 4. Αλλάζουμε τη φωτογραφία και βλέπουμε το καινούριο συναίσθημα
 
-# Targeted FGSM: push image toward 'happy' (class 1)
-def make_happy_version(img, steps=50, step_size=0.1, epsilon=0.5):
+# Targeted sparse PGD: push image toward 'happy' (class 1)
+# Only the top `top_fraction` pixels by gradient magnitude are updated each step,
+# reducing L1 distance while preserving reliable convergence.
+def make_happy_version(img, steps=500, step_size=0.1, epsilon=3.0, top_fraction=0.30):
     x0 = img.clone().float()
     x = x0.clone()
 
@@ -68,7 +71,7 @@ def make_happy_version(img, steps=50, step_size=0.1, epsilon=0.5):
         x_scaled = (x / 255).unsqueeze(0).unsqueeze(0)
         out = model[1](x_scaled)
 
-        # check if already happy
+        # stop as soon as happy becomes the top class
         if out.argmax() == 1:
             break
 
@@ -77,15 +80,27 @@ def make_happy_version(img, steps=50, step_size=0.1, epsilon=0.5):
         loss.backward()
         grad = x.grad
 
-        x = x - step_size * grad.sign()
+        # sparse sign step: only update top-fraction pixels by gradient magnitude
+        threshold = grad.abs().quantile(1 - top_fraction)
+        mask = (grad.abs() >= threshold).float()
+        x = x - step_size * grad.sign() * mask
         x = torch.clamp(x, x0 - epsilon, x0 + epsilon)
-        x = x.detach().clamp(0,255)
+        x = x.detach().clamp(0, 255)
 
     return x
 
-def make_not_happy(img, steps=50, step_size=0.1, epsilon=0.5):
+def make_not_happy(img, steps=500, step_size=0.1, epsilon=2.0, top_fraction=0.30):
     x0 = img.clone().float()
     x = x0.clone()
+
+    # pick the highest-confidence non-happy class as the target
+    with torch.no_grad():
+        x_scaled = (x / 255).unsqueeze(0).unsqueeze(0)
+        probs = model[1](x_scaled).squeeze().softmax(-1).clone()
+        probs[1] = -1
+        target_class = int(probs.argmax().item())
+
+    target = torch.tensor([target_class])
 
     for _ in range(steps):
         x.requires_grad_(True)
@@ -93,18 +108,20 @@ def make_not_happy(img, steps=50, step_size=0.1, epsilon=0.5):
         x_scaled = (x / 255).unsqueeze(0).unsqueeze(0)
         out = model[1](x_scaled)
 
-        # stop if NOT happy
-        # if out.argmax() != 1:
-        #     break
+        # stop as soon as any non-happy class becomes the top class
+        if out.argmax() != 1:
+            break
 
-        target = torch.tensor([1])
         loss = torch.nn.functional.cross_entropy(out, target)
         loss.backward()
         grad = x.grad
 
-        x = x + step_size * grad.sign()
+        # sparse sign step: only update top-fraction pixels by gradient magnitude
+        threshold = grad.abs().quantile(1 - top_fraction)
+        mask = (grad.abs() >= threshold).float()
+        x = x - step_size * grad.sign() * mask
         x = torch.clamp(x, x0 - epsilon, x0 + epsilon)
-        x = x.detach().clamp(0,255)
+        x = x.detach().clamp(0, 255)
 
     return x
 
@@ -138,8 +155,8 @@ def compare_images(A, B):
 easy_first = loadImage('neutral.png')
 medium_first = loadImage('angry.png')
 hard_second = loadImage('happy.png')
-easy_second = make_happy_version(easy_first, steps=50, step_size=0.1, epsilon=1.0)
-medium_second = make_happy_version(medium_first, steps=80, step_size=0.1, epsilon=2.5)
+easy_second = make_happy_version(easy_first)
+medium_second = make_happy_version(medium_first, epsilon=4.0)
 hard_first = make_not_happy(hard_second)
 
 compare_images(easy_first, easy_second)

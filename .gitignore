@@ -4,6 +4,7 @@ __pycache__/
 *.pyo
 *.pyd
 *.so
+answers.json
 
 # Virtual environments
 .venv/
@@ -51,4 +52,3 @@ outputs/
 # Cache directories
 .cache/
 __pycache__/
-answers.json
