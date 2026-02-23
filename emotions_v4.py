@@ -10,9 +10,10 @@ from gdown import download
 import torch
 from torchvision import models
 
-device = "cuda" if torch.cuda.is_available() else "cpu"
-print(f"Using device: {device}")
-
+if torch.backends.mps.is_available(): device = torch.device("mps")
+elif torch.cuda.is_available(): device = torch.device("cuda")
+else: device = torch.device("cpu")
+print("Using device:", device)
 class ReshapeAndScale255(torch.nn.Module):
     def __init__(self): super().__init__()
     def forward(self, x):
@@ -194,7 +195,7 @@ answers = {
         "first": toList(hard_first),
     }
 }
-with open("answers.json", "w") as f:
+with open("answersEmotions_v4.json", "w") as f:
     json.dump(answers, f)
 
 # from google.colab import files
